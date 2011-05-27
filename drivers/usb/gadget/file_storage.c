@@ -712,6 +712,10 @@ static void set_bulk_out_req_length(struct fsg_dev *fsg,
 	if (rem > 0)
 		length += fsg->bulk_out_maxpacket - rem;
 	bh->outreq->length = length;
+#if 0
+	if (bh->bulk_out_intended_length == 31)
+		bh->outreq->length = 31;
+#endif
 }
 
 static struct fsg_dev			*the_fsg;
@@ -4144,7 +4148,7 @@ static int __init fsg_init(void)
 		kref_put(&fsg->ref, fsg_release);
 	return rc;
 }
-module_init(fsg_init);
+late_initcall(fsg_init);
 
 
 static void __exit fsg_cleanup(void)

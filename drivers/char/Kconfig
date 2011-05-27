@@ -88,6 +88,19 @@ config VT_HW_CONSOLE_BINDING
 	 information. For framebuffer console users, please refer to
 	 <file:Documentation/fb/fbcon.txt>.
 
+config DEVMEM
+	bool "Memory device driver"
+	default y
+	help
+	  The memory driver provides two character devices, mem and kmem, which
+	  provide access to the system's memory. The mem device is a view of
+	  physical memory, and each byte in the device corresponds to the
+	  matching physical address. The kmem device is the same as mem, but
+	  the addresses correspond to the kernel's virtual address space rather
+	  than physical memory. These devices are standard parts of a Linux
+	  system and most users should say Y here. You might say N if very
+	  security conscience or memory is tight.
+
 config DEVKMEM
 	bool "/dev/kmem virtual device support"
 	default y
@@ -417,6 +430,23 @@ config SGI_MBCS
        help
          If you have an SGI Altix with an attached SABrick
          say Y or M here, otherwise say N.
+
+config FM_SI4702
+	tristate "SI4702 FM device driver"
+	depends on (MACH_MX31_3DS || MACH_MX35_3DS || MACH_MX37_3DS || MACH_MX51_3DS)
+	default n
+
+config MXC_IIM
+	tristate "MXC IIM device driver"
+	depends on ARCH_MXC
+	help
+	  Support for access to MXC IIM device, most people should say N here.
+
+config IMX_SIM
+	tristate "IMX SIM support"
+	depends on ARCH_MX51
+	---help---
+         Say Y to enable the SIM driver support.
 
 source "drivers/serial/Kconfig"
 
@@ -1070,6 +1100,10 @@ config DEVPORT
 	depends on !M68K
 	depends on ISA || PCI
 	default y
+
+config DCC_TTY
+	tristate "DCC tty driver"
+	depends on ARM
 
 source "drivers/s390/char/Kconfig"
 

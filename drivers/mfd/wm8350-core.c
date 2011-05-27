@@ -80,10 +80,6 @@ static int wm8350_phys_read(struct wm8350 *wm8350, u8 reg, int num_regs,
 		/* Cache is CPU endian */
 		dest[i - reg] = be16_to_cpu(dest[i - reg]);
 
-		/* Satisfy non-volatile bits from cache */
-		dest[i - reg] &= wm8350_reg_io_map[i].vol;
-		dest[i - reg] |= wm8350->reg_cache[i];
-
 		/* Mask out non-readable bits */
 		dest[i - reg] &= wm8350_reg_io_map[i].readable;
 	}
@@ -182,9 +178,6 @@ static int wm8350_write(struct wm8350 *wm8350, u8 reg, int num_regs, u16 *src)
 		wm8350->reg_cache[i] =
 			(wm8350->reg_cache[i] & ~wm8350_reg_io_map[i].writable)
 			| src[i - reg];
-
-		/* Don't store volatile bits */
-		wm8350->reg_cache[i] &= ~wm8350_reg_io_map[i].vol;
 
 		src[i - reg] = cpu_to_be16(src[i - reg]);
 	}
@@ -1123,7 +1116,6 @@ static int wm8350_create_cache(struct wm8350 *wm8350, int mode)
 			}
 			value = be16_to_cpu(value);
 			value &= wm8350_reg_io_map[i].readable;
-			value &= ~wm8350_reg_io_map[i].vol;
 			wm8350->reg_cache[i] = value;
 		} else
 			wm8350->reg_cache[i] = reg_map[i];
@@ -1186,9 +1178,14 @@ int wm8350_device_init(struct wm8350 *wm8350, int irq,
 			dev_info(wm8350->dev, "Found Rev G device\n");
 			wm8350->rev = WM8350_REV_G;
 			break;
+		case WM8350_REV_H:
+			dev_info(wm8350->dev, "Found Rev H device\n");
+			wm8350->rev = WM8350_REV_H;
+			break;
 		default:
 			/* For safety we refuse to run on unknown hardware */
-			dev_info(wm8350->dev, "Found unknown rev\n");
+			dev_info(wm8350->dev, "Found unknown rev %x\n",
+				 (id2 & WM8350_CHIP_REV_MASK) >> 12);
 			ret = -ENODEV;
 			goto err;
 		}
